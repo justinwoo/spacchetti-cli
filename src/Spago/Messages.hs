@@ -47,12 +47,13 @@ failedToParseRepoString repo = makeMessage
   , ""
   ]
 
-cannotFindConfig :: Text
-cannotFindConfig = makeMessage
-  [ "There's no " <> surroundQuote "spago.dhall" <> " in your current location."
+cannotFindConfig :: Text -> Text
+cannotFindConfig path = makeMessage
+  [ "Couldn't find a config file at " <> path
   , ""
   , "If you already have a spago project you might be in the wrong subdirectory,"
-  , "otherwise you might want to run `spago init` to initialize a new project."
+  , "otherwise you might want to run `spago init` to initialize a new project or "
+  , "try the `--config` flag to specify a particular config file."
   ]
 
 cannotFindPackages :: Text

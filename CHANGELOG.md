@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Bugfixes:
+- Make `--config` work correctly with both relative and absolute paths (#505, #472)
+
+
 ## [0.12.1] - 2019-11-17
 
 Bugfixes:

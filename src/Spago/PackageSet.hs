@@ -13,8 +13,10 @@ import           Spago.Prelude
 import           Data.Ord        (comparing)
 import qualified Data.Text       as Text
 import qualified Data.Versions   as Version
+import qualified Dhall.Import
 import qualified Dhall.Freeze
 import qualified Dhall.Pretty
+import           RIO.Prelude     (mapMaybeM)
 import qualified Safe
 
 import qualified Spago.Dhall     as Dhall
@@ -226,23 +228,23 @@ localImportPath (Dhall.Import
 localImportPath _ = Nothing
 
 
-rootPackagePath :: Dhall.Import -> Maybe System.IO.FilePath
+rootPackagePath :: Dhall.Import -> Spago (Maybe System.IO.FilePath)
 rootPackagePath (Dhall.Import
   { importHashed = Dhall.ImportHashed
-    { importType = localImport@(Dhall.Local _ Dhall.File { file = "packages.dhall" })
+    { importType = Dhall.Local prefix file@(Dhall.File { file = "packages.dhall" })
     }
   , Dhall.importMode = Dhall.Code
-  })              = Just $ Text.unpack $ pretty localImport
-rootPackagePath _ = Nothing
+  })              = Just <$> (liftIO $ Dhall.Import.localToPath prefix file)
+rootPackagePath _ = pure Nothing
 
 
--- | In a Monorepo we don't wish to rebuild our shared packages over and over,
+-- | In a monorepo we don't wish to rebuild our shared packages over and over,
 -- | so we build into an output folder where our root packages.dhall lives
 findRootOutputPath :: System.IO.FilePath -> Spago (Maybe System.IO.FilePath)
 findRootOutputPath path = do
   logDebug "Locating root path of packages.dhall"
   imports <- liftIO $ Dhall.readImports $ Text.pack path
-  let localImports = mapMaybe rootPackagePath imports
+  localImports <- mapMaybeM rootPackagePath imports
   pure $ flip System.FilePath.replaceFileName "output" <$> findRootPath localImports
 
 -- | Given a list of filepaths, find the one with the least folders

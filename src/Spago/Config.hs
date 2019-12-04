@@ -112,7 +112,9 @@ parseConfig = do
   withConfigAST $ pure . addSourcePaths
 
   path <- askEnv envConfigPath
-  expr <- liftIO $ Dhall.inputExpr $ "./" <> path
+  expr <- liftIO $ Dhall.inputExpr $
+            if isAbsolute (Text.unpack path) then path else ("./" <> path)
+
   case expr of
     Dhall.RecordLit ks -> do
       packages :: Map PackageName Package <- Dhall.requireKey ks "packages" (\case
@@ -152,7 +154,7 @@ ensureConfig = do
   path <- askEnv envConfigPath
   exists <- testfile path
   unless exists $ do
-    die [ display Messages.cannotFindConfig ]
+    die [ display $ Messages.cannotFindConfig path ]
   try parseConfig >>= \case
     Right config -> do
       PackageSet.ensureFrozen $ Text.unpack path
@@ -349,7 +351,7 @@ withConfigAST transform = do
   path <- askEnv envConfigPath
   rawConfig <- liftIO $ Dhall.readRawExpr path
   case rawConfig of
-    Nothing -> die [ display $ Messages.cannotFindConfig ]
+    Nothing -> die [ display $ Messages.cannotFindConfig path ]
     Just (header, expr) -> do
       newExpr <- transformMExpr transform expr
       -- Write the new expression only if it has actually changed

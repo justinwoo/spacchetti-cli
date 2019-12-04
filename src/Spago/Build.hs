@@ -224,13 +224,11 @@ runBackend
   -> Spago ()
 runBackend maybeBackend moduleName maybeSuccessMessage failureMessage buildOpts extraArgs = do
   logDebug $ display $ "Running with backend: " <> fromMaybe "nodejs" maybeBackend
-  let postBuild = maybe (nodeAction =<< getOutputPath buildOpts) backendAction maybeBackend
+  let postBuild = maybe (nodeAction =<< getOutputPathOrDefault buildOpts) backendAction maybeBackend
   build buildOpts (Just postBuild)
   where
     nodeArgs = Text.intercalate " " $ map Purs.unExtraArg extraArgs
-    nodeContents outputPath' =
-         let path = fromMaybe "output" outputPath'
-         in "#!/usr/bin/env node\n\n" <> "require('../" <> Text.pack path <> "/" <> Purs.unModuleName moduleName <> "').main()"
+    nodeContents path = "#!/usr/bin/env node\n\n" <> "require('../" <> Text.pack path <> "/" <> Purs.unModuleName moduleName <> "').main()"
     nodeCmd = "node .spago/run.js " <> nodeArgs
     nodeAction outputPath' = do
       logDebug "Writing .spago/run.js"
@@ -357,27 +355,22 @@ search = do
   viewShell $ callCommand $ Text.unpack cmd
 
 
--- | Find the output path for purs compiler
--- | This is based on the location of packages.dhall, the shareOutput flag
--- | and whether the user has manually specified a path in pursArgs
-getOutputPath
-  :: BuildOptions
-  -> Spago (Maybe Sys.FilePath)
-getOutputPath buildOpts = do
+-- | Find the output path for purs compiler based on the location of
+-- | `packages.dhall`, the shareOutput flag and whether the user has manually
+-- | specified a path in pursArgs
+getOutputPathOrDefault :: BuildOptions -> Spago Sys.FilePath
+getOutputPathOrDefault buildOpts = do
   configPath <- askEnv envConfigPath
-  outputPath <- PackageSet.findRootOutputPath (Text.unpack configPath)
+  maybeRootOutputPath <- PackageSet.findRootOutputPath (Text.unpack configPath)
+  let defaultPath = "output"
+
   case findOutputFlag (pursArgs buildOpts) of
-    Just path -> pure (Just path)
+    Just path -> pure path
     Nothing   ->
       case shareOutput buildOpts of
-        NoShareOutput -> pure Nothing
-        ShareOutput   -> pure outputPath
+        NoShareOutput -> pure defaultPath
+        ShareOutput   -> pure $ fromMaybe defaultPath maybeRootOutputPath
 
-getOutputPathOrDefault
-  :: BuildOptions
-  -> Spago Sys.FilePath
-getOutputPathOrDefault buildOpts
-  = (fromMaybe "output") <$> getOutputPath buildOpts
 
 data PathType
   = OutputFolder
@@ -450,7 +443,5 @@ getBuildArgsForSharedFolder buildOpts = do
       logInfo "Output path set explicitly - not using shared output path"
       pure pursArgs'
     else do
-      outputFolder <- getOutputPath buildOpts
-      case pathToOutputArg <$> outputFolder of
-        Just newArg -> pure (pursArgs' <> [newArg])
-        _           -> pure pursArgs'
+      outputFolder <- getOutputPathOrDefault buildOpts
+      pure $ pursArgs' <> [pathToOutputArg outputFolder]
