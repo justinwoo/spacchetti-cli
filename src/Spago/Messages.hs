@@ -207,5 +207,14 @@ globsDoNotMatchWhenWatching :: NonEmpty Text -> Text
 globsDoNotMatchWhenWatching patterns = makeMessage $
   "WARNING: No matches found when trying to watch the following directories: " : NonEmpty.toList patterns
 
+noControllingTerminal :: Show a => a -> Text
+noControllingTerminal err = makeMessage
+  [ "WARNING: The file path for the controlling terminal could not be determined."
+  , "Details:"
+  , ""
+  , tshow err
+  , ""
+  ]
+
 makeMessage :: [Text] -> Text
 makeMessage = Text.intercalate "\n"

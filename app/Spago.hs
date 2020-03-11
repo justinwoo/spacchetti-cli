@@ -396,9 +396,7 @@ runWithEnv GlobalOptions{..} app = do
         $ setLogVerboseFormat True logOptions'
   withLogFunc logOptions $ \logFunc -> do
     let logFunc' :: LogFunc
-        logFunc' = if globalQuiet
-          then mkLogFunc $ \_ _ _ _ -> pure ()
-          else logFunc
+        logFunc' = if globalQuiet then mempty else logFunc
 
     let configPath = fromMaybe Config.defaultPath globalConfigPath
 
