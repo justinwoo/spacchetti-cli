@@ -19,6 +19,8 @@ module Spago.Prelude
   , pretty
   , output
   , outputStr
+  , jsonToText
+  , jsonToTextPretty
   , die
   , hush
   , surroundQuote
@@ -92,7 +94,7 @@ import qualified UnliftIO.Directory                    as Directory
 import           Control.Applicative                   (empty)
 import           Control.Monad                         as X
 import           Control.Monad.Reader                  as X
-import           Data.Aeson                            as X hiding (Result (..))
+import           Data.Aeson                            as X hiding (Result (..), json)
 import           Data.Bifunctor                        (first, second)
 import           Data.Bool                             as X
 import           Data.Either                           as X
@@ -116,11 +118,14 @@ import           UnliftIO.Directory                    (getModificationTime, mak
 import           UnliftIO.Process                      (callCommand)
 
 
-
+import qualified Data.Aeson as Json
+import qualified Data.Aeson.Encode.Pretty as Json
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Search as BSS
 import qualified Data.ByteString.UTF8 as UTF8
+import qualified Data.Text.Lazy as LT
+import qualified Data.Text.Lazy.Encoding as LT
 import qualified System.IO as IO
 
 
@@ -275,6 +280,12 @@ findExecutableOrDie cmd = do
     -- See: https://github.com/purescript/spago/issues/635
     Just _path -> pure $ Text.pack cmd
 
+
+jsonToText :: ToJSON a => a -> Text
+jsonToText = LT.toStrict . LT.decodeUtf8 . Json.encode
+
+jsonToTextPretty :: ToJSON a => a -> Text
+jsonToTextPretty = LT.toStrict . LT.decodeUtf8 . Json.encodePretty
 
 type HasLogFunc env = HasType LogFunc env
 

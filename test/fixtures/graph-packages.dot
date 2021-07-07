@@ -1,0 +1,7 @@
+strict digraph deps {
+"my-project" [style=dashed];
+"console" -> "effect";
+"console" -> "prelude";
+"effect" -> "prelude";
+}
+

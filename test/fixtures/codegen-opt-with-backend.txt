@@ -1,1 +1,3 @@
-spago: Can't pass `--codegen` option to build when using a backend. Hint: No need to pass `--codegen corefn` explicitly when using the `backend` option. Remove the argument to solve the error
+[error] Can't pass `--codegen` option to build when using a backend
+[error] Hint: No need to pass `--codegen corefn` explicitly when using the `backend` option.
+[error] Remove the argument to solve the error

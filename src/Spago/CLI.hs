@@ -60,6 +60,12 @@ data Command
 
   -- ### Build commands - i.e. they all call Purs at some point
 
+  -- | Produce a graph representation of all the Modules in the build
+  | GraphModules JsonFlag
+
+  -- | Produce a graph representation of all the Packages in the build
+  | GraphPackages JsonFlag
+
     -- | Build the project
   | Build BuildOptions
 
@@ -268,6 +274,20 @@ parser = do
       , listPackages <|> listDeps
       )
 
+    graphPackages
+      = CLI.subcommand "packages" "Graph all the packages in the build to their dependencies"
+        (GraphPackages <$> jsonFlag)
+
+    graphModules
+      = CLI.subcommand "modules" "Graph all the modules in the build to their dependencies"
+        (GraphModules <$> jsonFlag)
+
+    graph =
+      ( "graph"
+      , "Graph command. Supports `packages`, `modules`"
+      , graphPackages <|> graphModules
+      )
+
     install =
       ( "install"
       , "Install (download) all dependencies listed in spago.dhall"
@@ -344,6 +364,7 @@ parser = do
       , search
       , path
       , sources
+      , graph
       ]
     packagesCommands = CLI.subcommandGroup "Packages commands:"
       [ install

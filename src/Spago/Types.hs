@@ -76,7 +76,7 @@ data Force = Force | NoForce
 data IncludeTransitive = IncludeTransitive | NoIncludeTransitive
 
 newtype ModuleName = ModuleName { unModuleName :: Text }
-  deriving newtype (Eq, FromJSON, FromJSONKey, Ord)
+  deriving newtype (Show, Eq, Ord, FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 newtype TargetPath = TargetPath { unTargetPath :: Text }
 newtype SourcePath = SourcePath { unSourcePath :: Text }
   deriving newtype (Show, Dhall.FromDhall)
@@ -213,17 +213,26 @@ newtype BowerCmd = BowerCmd Text
 data GlobalCache = GlobalCache !GHC.IO.FilePath !(Maybe CacheFlag)
 
 newtype ModuleGraph = ModuleGraph { unModuleGraph :: Map ModuleName ModuleGraphNode }
-  deriving newtype (FromJSON)
+  deriving newtype (FromJSON, ToJSON)
 
 data ModuleGraphNode = ModuleGraphNode
   { graphNodePath :: Text
-  , graphNodeDepends :: [ModuleName]
-  } deriving (Generic)
+  , graphNodeDepends :: Set ModuleName
+  } deriving (Generic, Show)
 
 instance FromJSON ModuleGraphNode where
   parseJSON = withObject "ModuleGraphNode" $ \o ->
     ModuleGraphNode
       <$> o .: "path"
       <*> o .: "depends"
+
+instance ToJSON ModuleGraphNode where
+  toJSON ModuleGraphNode{..} = object
+    [ "path" .= graphNodePath
+    , "depends" .= graphNodeDepends
+    ]
+
+instance Semigroup ModuleGraphNode where
+  a <> b = ModuleGraphNode (graphNodePath a) ( graphNodeDepends a <> graphNodeDepends b)
 
 type Graph = Maybe ModuleGraph

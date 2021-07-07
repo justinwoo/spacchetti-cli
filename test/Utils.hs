@@ -10,7 +10,6 @@ module Utils
   , runFor
   , shouldBeFailure
   , shouldBeFailureInfix
-  , shouldBeFailureOutput
   , shouldBeSuccess
   , shouldBeSuccessInfix
   , shouldBeSuccessOutput
@@ -115,12 +114,6 @@ shouldBeFailure result@(_code, _stdout, _stderr) = do
   -- print $ "STDOUT: " <> _stdout
   -- print $ "STDERR: " <> _stderr
   result `shouldSatisfy` (\(code, _, _) -> code == ExitFailure 1)
-
-shouldBeFailureOutput :: HasCallStack => FilePath -> (ExitCode, Text, Text) -> IO ()
-shouldBeFailureOutput expected (code, _stdout, stderr) = do
-  expectedContent <- readFixture expected
-  code `shouldBe` ExitFailure 1
-  stderr `shouldBe` expectedContent
 
 shouldBeFailureStderr :: HasCallStack => FilePath -> (ExitCode, Text, Text) -> IO ()
 shouldBeFailureStderr expected (code, _stdout, stderr) = do

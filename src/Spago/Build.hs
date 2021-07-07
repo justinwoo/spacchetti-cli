@@ -55,7 +55,7 @@ build maybePostBuild = do
   BuildOptions{..} <- view (the @BuildOptions)
   Config{..} <- view (the @Config)
   deps <- Packages.getProjectDeps
-  let partitionedGlobs@(Packages.Globs{..}) = Packages.getGlobs deps depsOnly configSourcePaths
+  let partitionedGlobs@Packages.Globs{..} = Packages.getGlobs deps depsOnly configSourcePaths
       allPsGlobs = Packages.getGlobsSourcePaths partitionedGlobs <> sourcePaths
       allJsGlobs = Packages.getJsGlobs deps depsOnly configSourcePaths <> sourcePaths
 
@@ -78,7 +78,7 @@ build maybePostBuild = do
                     $ Map.toList moduleGraph
 
                 getImports :: ModuleName -> Set ModuleName
-                getImports = maybe Set.empty (Set.fromList . graphNodeDepends) . flip Map.lookup moduleGraph
+                getImports = maybe Set.empty graphNodeDepends . flip Map.lookup moduleGraph
 
                 -- All package modules that are imported from our project files
                 importedPackageModules :: Set ModuleName

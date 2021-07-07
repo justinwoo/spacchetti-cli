@@ -20,6 +20,7 @@ import qualified Spago.Command.Ls as Ls
 import qualified Spago.Command.Path as Path
 import qualified Spago.Command.Verify as Verify
 import qualified Spago.Command.Init as Init
+import qualified Spago.Command.Graph as Graph
 
 
 main :: IO ()
@@ -102,6 +103,8 @@ main = withUtf8 $ do
         $ Spago.Build.test modName nodeArgs
       Run modName buildOptions nodeArgs -> Run.withBuildEnv globalUsePsa buildOptions
         $ Spago.Build.run modName nodeArgs
+      GraphModules json -> Run.withBuildEnv globalUsePsa defaultBuildOptions $ Graph.graphModules json
+      GraphPackages json -> Run.withBuildEnv globalUsePsa defaultBuildOptions $ Graph.graphPackages json
 
       -- ### Legacy commands, here for smoother migration path to new ones
       Bundle -> die [ display Messages.bundleCommandRenamed ]

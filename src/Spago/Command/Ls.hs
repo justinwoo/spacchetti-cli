@@ -10,8 +10,6 @@ import qualified Data.Aeson               as Json
 import qualified Data.Map                 as Map
 import qualified Data.Set                 as Set
 import qualified Data.Text                as Text
-import qualified Data.Text.Lazy           as LT
-import qualified Data.Text.Lazy.Encoding  as LT
 
 import qualified Spago.Packages as Packages
 
@@ -27,9 +25,6 @@ instance ToJSON JsonPackageOutput where
   toJSON = Json.genericToJSON Json.defaultOptions
     { fieldLabelModifier = drop 5
     }
-
-encodeJsonPackageOutput :: JsonPackageOutput -> Text
-encodeJsonPackageOutput = LT.toStrict . LT.decodeUtf8 . Json.encode
 
 
 listPackageSet
@@ -77,7 +72,7 @@ formatPackageNames = \case
               , json_repo = toJSON loc
               , json_version = "local"
               }
-      in map (encodeJsonPackageOutput . asJson) pkgs
+      in map (jsonToText . asJson) pkgs
 
     -- | Format all the package names from the configuration
     formatPackageNamesText :: [(PackageName, Package)] -> [Text]

@@ -103,6 +103,7 @@ $ spago bundle-app
 $ node .
 ```
 
+## Table of Contents
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -241,6 +242,8 @@ Some packages might not be found or have the wrong version, in which case
 you'll have to carefully:
 - try to run `spago install some-package` for packages in the set
 - [add the missing packages](#add-a-package-to-the-package-set) if not in the set
+
+### TODO: graph
 
 ### See what commands and flags are supported
 
